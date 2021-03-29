@@ -17,12 +17,22 @@ from imutils.video import VideoStream
 #INPUT_FILE='test.MTS'
 #OUTPUT_FILE='output.avi'
 LABELS_FILE='yolov3.txt'
-CONFIG_FILE='yolov3.cfg'
-WEIGHTS_FILE='yolov3.weights'
+#CONFIG_FILE='yolov3.cfg'
+#WEIGHTS_FILE='yolov3.weights'
+#CONFIG_FILE='yolov3-tiny.cfg'
+#WEIGHTS_FILE='yolov2-tiny.weights'
 CONFIDENCE_THRESHOLD=0.3
 
 
-def find_vehicles(INPUT_FILE, OUTPUT_FILE):
+def find_vehicles(INPUT_FILE, OUTPUT_FILE, tiny):
+    if tiny:
+        CONFIG_FILE='yolov3-tiny.cfg'
+        WEIGHTS_FILE='yolov2-tiny.weights'
+    else:
+        CONFIG_FILE='yolov3.cfg'
+        WEIGHTS_FILE='yolov3.weights'
+        
+        
     H=None
     W=None
 

@@ -12,5 +12,5 @@ import imutils
 from imutils.video import FPS
 from imutils.video import VideoStream
 
-yolo.find_vehicles("test4.png")
-yolo_video.find_vehicles("test_short.mp4", "Output_short.mp4")
+yolo.find_vehicles("accuracy_test.jpg", tiny=True)
+yolo_video.find_vehicles("test.MTS", "Output_tiny.mp4", tiny=False)

@@ -34,7 +34,7 @@ def draw_prediction(img, class_id, confidence, x, y, x_plus_w, y_plus_h, classes
     cv2.putText(img, label, (x-10,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
     
-def find_vehicles(img_name):
+def find_vehicles(img_name, tiny):
     image = cv2.imread(img_name)
     
     Width = image.shape[1]
@@ -47,8 +47,11 @@ def find_vehicles(img_name):
         classes = [line.strip() for line in f.readlines()]
     
 
-    
-    net = cv2.dnn.readNet('yolov3.weights', 'yolov3.cfg')
+    if tiny:
+         net = cv2.dnn.readNet('yolov2-tiny.weights', 'yolov3-tiny.cfg')
+    else:     
+        net = cv2.dnn.readNet('yolov3.weights', 'yolov3.cfg')
+   
     
     blob = cv2.dnn.blobFromImage(image, scale, (416,416), (0,0,0), True, crop=False)
     
