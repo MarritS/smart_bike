@@ -5,7 +5,7 @@ Created on Tue Mar 30 21:07:14 2021
 @author: marri
 """
 import cv2
-import yolo_return_boxes as yolo
+import yolo
 from imutils.video import FPS
 from imutils.video import VideoStream
 from playsound import playsound
