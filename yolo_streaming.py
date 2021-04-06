@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Mar 30 20:43:55 2021
+
+@author: marri
+"""
+
 #############################################
 # Object detection - YOLO - OpenCV
 # Author : Arun Ponnusamy   (July 16, 2018)
@@ -34,8 +41,7 @@ def draw_prediction(img, class_id, confidence, x, y, x_plus_w, y_plus_h, classes
     cv2.putText(img, label, (x-10,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
     
-def find_vehicles(img_name, tiny):
-    image = cv2.imread(img_name)
+def find_vehicles(image, tiny):
     
     Width = image.shape[1]
     Height = image.shape[0]
@@ -71,7 +77,7 @@ def find_vehicles(img_name, tiny):
             scores = detection[5:]
             class_id = np.argmax(scores)
             confidence = scores[class_id]
-            if confidence > 0.7:
+            if confidence > 0.5:
                 center_x = int(detection[0] * Width)
                 center_y = int(detection[1] * Height)
                 w = int(detection[2] * Width)
@@ -94,8 +100,9 @@ def find_vehicles(img_name, tiny):
         h = box[3]
         draw_prediction(image, class_ids[i], confidences[i], round(x), round(y), round(x+w), round(y+h), classes)
     
-    cv2.imshow("object detection", image)
-    cv2.waitKey()
+    #cv2.imshow("object detection", image)
+    #cv2.waitKey()
+    return image
         
-    cv2.imwrite("object-detection.jpg", image)
-    cv2.destroyAllWindows()
+    #cv2.imwrite("object-detection.jpg", image)
+    #cv2.destroyAllWindows()

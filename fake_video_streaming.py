@@ -9,10 +9,12 @@ import yolo_return_boxes as yolo
 from imutils.video import FPS
 from imutils.video import VideoStream
 from playsound import playsound
+import winsound
+
 
 fps = FPS().start()
 mp3File = 'bell.mp3'
-INPUT_FILE="00105.MTS"
+INPUT_FILE="00108.MTS"
 fourcc = cv2.VideoWriter_fourcc(*"MJPG")
 vs = cv2.VideoCapture(INPUT_FILE)
 writer = cv2.VideoWriter("result", fourcc, 30,
@@ -47,7 +49,8 @@ while True:
                 #print('Closest car:', max(sizes))
                 if (max(sizes)>50000 and bellcnt>4):
                     print('car')
-                    playsound(mp3File)
+                    #playsound(mp3File)
+                    winsound.PlaySound(mp3File, winsound.SND_ASYNC | winsound.SND_ALIAS )
                     bellcnt=0
             writer.write(cv2.resize(img,(800, 600)))
             fps.update()
