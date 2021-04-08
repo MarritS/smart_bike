@@ -54,26 +54,36 @@ tracking=True
 
 
 def tracking_cars():
-        box = tracker.update(frame_tracking)
-        #Turn list into integers
-        box = list(map(int, box))
-     
-       
-        #size = box[2]*box[3]
-        #if size>oldsize:
-            #count_increase += 1
-        #elif size<(oldsize-3):
-            #count_increase -= 1
+        if tracking_cars.tracking:
+            box = tracker.update(frame_tracking)
+            #Turn list into integers
+            box = list(map(int, box))
+           
+            size = box[2]*box[3]
+            print(size)
     
+            if size<=(tracking_cars.old_size):
+                tracking_cars.count_no_increase +=1
+            else:
+                tracking_cars.count_no_increase = 0
+                
+            if (tracking_cars.count_no_increase>=8):
+                tracking_cars.tracking=False
+            if (tracking_cars.count_no_increase>=4 and size > 4000):
+                tracking_cars.tracking=False
         
-        p1 = (int(box[0]), int(box[1]))
-        p2 = (int(box[0] + box[2]), int(box[1] + box[3]))
-        cv2.rectangle(frame_tracking, p1, p2, (255, 0, 0), 2, 1)
-        
-        #oldsize = size 
+            print(tracking_cars.count_no_increase)
+            
+            p1 = (int(box[0]), int(box[1]))
+            p2 = (int(box[0] + box[2]), int(box[1] + box[3]))
+            cv2.rectangle(frame_tracking, p1, p2, (255, 0, 0), 2, 1)
+            tracking_cars.old_size = size
+            #oldsize = size 
         
         return frame_tracking
-        
+tracking_cars.count_no_increase=0
+tracking_cars.old_size=0
+tracking_cars.tracking=True
 
 while True:
         bellcnt+=1
