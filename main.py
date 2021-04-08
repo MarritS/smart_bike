@@ -14,42 +14,71 @@ Created on Tue Mar 30 21:07:14 2021
 import cv2
 import yolo
 from imutils.video import FPS
-from imutils.video import VideoStream
-from playsound import playsound
 from tracker import KCFTracker
 import winsound
-import time
 
 
-SAVE_VIDEO = True
+SAVE_VIDEO_TRACKING = True
+SAVE_VIDEO_DETECTION = True
+SHOW_TRACKING = True
+SHOW_DETECTION = False
+FRAMERATE = 10
+INPUT_FILE="00105.MTS"
+OUTPUT_FILE_TRACKING = "result_tracking.mp4"
+OUTPUT_FILE_DETECTION = "result_detection.mp4"
 
 fps = FPS().start()
 mp3File = "bell.wav"
-INPUT_FILE="00105.MTS"
 fourcc = cv2.VideoWriter_fourcc(*"MJPG")
 
 vs = cv2.VideoCapture(INPUT_FILE)
-writer = cv2.VideoWriter("result.mp4", fourcc, 30,
+writerTracking = cv2.VideoWriter(OUTPUT_FILE_TRACKING, fourcc, 30,
         (800, 600), True)
+writerDetection = cv2.VideoWriter(OUTPUT_FILE_DETECTION, fourcc, 30,
+        (800, 600), True)
+
+
 cnt=0
+frameskip = 30/FRAMERATE
 bellcnt=0
-framecnt=0
-minsize = 200000
-maxsize = 0
+
+
 size=0
 oldsize=0
 box = (0,0,0,0)
 count_increase=0
+
 tracker = KCFTracker(True, True, True)
 init=False
 tracking=True
+
+
+def tracking_cars():
+        box = tracker.update(frame_tracking)
+        #Turn list into integers
+        box = list(map(int, box))
+     
+       
+        #size = box[2]*box[3]
+        #if size>oldsize:
+            #count_increase += 1
+        #elif size<(oldsize-3):
+            #count_increase -= 1
+    
+        
+        p1 = (int(box[0]), int(box[1]))
+        p2 = (int(box[0] + box[2]), int(box[1] + box[3]))
+        cv2.rectangle(frame_tracking, p1, p2, (255, 0, 0), 2, 1)
+        
+        #oldsize = size 
+        
+        return frame_tracking
+        
+
 while True:
-        #print('Min: ', minsize)
-        #print('Max: ', maxsize)
-        framecnt+=1
         bellcnt+=1
         cnt+=1
-        #print ("Frame number", framecnt)
+        
         try:
             (grabbed, frame) = vs.read()
         except:
@@ -57,84 +86,68 @@ while True:
         if frame is None:
             break
         
-        frame_clean = frame.copy()
+        frame_tracking = frame.copy()
+        frame_detection = frame.copy()
         fps.update()
+        
           
-        if init is True and tracking is True and cnt==3:
-             bbox = tracker.update(frame)
-             bbox = list(map(int, bbox))
-    # fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
+        if init is True and tracking is True and cnt==frameskip:
+            frame_tracking = tracking_cars()
+            if SHOW_TRACKING:
+                cv2.imshow("Tracking", frame_tracking)
+                key = cv2.waitKey(1) & 0xFF
+            if key == ord("q"):
+                break
+            if SAVE_VIDEO_TRACKING:
+               frame_tracking = cv2.resize(frame_tracking, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
+               writerTracking.write(cv2.resize(frame_tracking,(800, 600)))
     
-     # Tracking success
-             p1 = (int(bbox[0]), int(bbox[1]))
-             size = bbox[2]*bbox[3]
-             if size>oldsize:
-                 count_increase += 1
-             elif size<(oldsize-3):
-                 count_increase -= 1
-             print(count_increase)
-             p2 = (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))
-             cv2.rectangle(frame_clean, p1, p2, (255, 0, 0), 2, 1)
-             oldsize = size
-  
-    
-        if cnt == 3:
-            cnt=0
+        if cnt == frameskip:
             
-            boxes, img = yolo.find_vehicles(frame, tiny=True)
-            cv2.imshow("Tracking", frame_clean)
+            cnt=0
+            boxes, frame_detection = yolo.find_vehicles(frame_detection, tiny=True)
             sizes = []
             for box in boxes:
                 size = (box[2]*box[3])
                 sizes.append(size)
                 if init is False:
                     init = True
-                    tracker.init(box, frame)
-                    oldsize = size
-                    #tracker.init((40, 40, 90, 90), frame)
+                    tracker.init(box, frame_detection)
                     
-                
-             
-              
-            
 
-        # Put FPS
-        #cv2.putText(frame, "FPS : " + str(int(fps)), (100, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (50, 170, 50), 2)
-
-            cv2.imshow("Tracking", frame_clean)
-            #img = cv2.resize(img, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
-            #cv2.imshow("output", cv2.resize(img,(800, 600)))
             if len(sizes)>0:
-                #print('Closest car:', max(sizes))
                 if (max(sizes)>30000 and bellcnt>8):
                     print('car')
-                    #playsound(mp3File)
                     winsound.PlaySound(mp3File, winsound.SND_ASYNC | winsound.SND_ALIAS )
                     bellcnt=0
-            writer.write(cv2.resize(frame_clean,(800, 600)))
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord("q"):
-                break
-            #cv2.waitKey()
-        else: 
-            if size is not None:
-                #print('blub')
-                x = int(box[0])
-                y = int(box[1])
-                x_plus_w = int(box[0] + box[2])
-                y_plus_h = int(box[1] + box[3])
-                color = (100, 100, min(size/100, 255))
-                #cv2.rectangle(frame, (x, y), (x_plus_w, y_plus_h), color, 2)
-                frame = cv2.resize(frame, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
-                #cv2.imshow("output", cv2.resize(frame,(800, 600)))
-                writer.write(cv2.resize(frame_clean,(800, 600)))
+                    
+            if SAVE_VIDEO_DETECTION:    
+                frame_detection = cv2.resize(frame_detection, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
+                writerDetection.write(cv2.resize(frame_detection,(800, 600)))
+            if SHOW_DETECTION:
+                cv2.imshow('detection', frame_detection)
                 key = cv2.waitKey(1) & 0xFF
                 if key == ord("q"):
                    break
-                #cv2.waitKey()
                 
+                
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord("q"):
+                break
+            
+        else: 
+            if size is not None:
+                if SAVE_VIDEO_TRACKING:
+                    frame_tracking = cv2.resize(frame_tracking, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
+                    writerTracking.write(cv2.resize(frame_tracking,(800, 600)))
+                if SAVE_VIDEO_DETECTION:    
+                    frame_detection = cv2.resize(frame_detection, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
+                    writerDetection.write(cv2.resize(frame_detection,(800, 600)))
+       
         
-        
+
+       
+               
         
          
 fps.stop()
@@ -147,7 +160,8 @@ cv2.destroyAllWindows()
 
 # release the file pointers
 print("[INFO] cleaning up...")
-writer.release()
+writerTracking.release()
+writerDetection.release()
 vs.release()
     
         #cv2.imshow('Input', img)
